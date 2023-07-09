@@ -1,12 +1,9 @@
-const { withPlausibleProxy } = require('next-plausible')
-
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+
+module.exports = {
   reactStrictMode: true,
   compiler: {
     // Enables the styled-components SWC transform
     styledComponents: true,
   },
 }
-
-module.exports = withPlausibleProxy()(nextConfig)

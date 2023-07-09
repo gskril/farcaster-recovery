@@ -1,50 +1,95 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin'
 import Head from 'next/head'
-import { useAccount, useEnsAddress, useEnsName } from 'wagmi'
+import styled, { css } from 'styled-components'
+import { useAccount, useContractRead } from 'wagmi'
 
-import { Footer } from '@/components/Footer'
-import { Nav } from '@/components/Nav'
-import { Container, Layout } from '@/components/atoms'
-import { useIsMounted } from '@/hooks/useIsMounted'
+import { ConnectButton } from '../components/ConnectButton'
+import { Footer } from '../components/Footer'
+import { Nav } from '../components/Nav'
+import { UpdateRecoveryAddress } from '../components/UpdateRecoveryAddress'
+import { Container, Layout } from '../components/atoms'
+import { ID_REGISTRY } from '../contracts'
+import { useIsMounted } from '../hooks/useIsMounted'
+
+const Wrapper = styled.div(
+  ({ theme }) => css`
+    gap: ${theme.space['4']};
+    display: flex;
+    text-align: center;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+  `
+)
+
+const Title = styled(Heading)`
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03125rem;
+  line-height: 1.1;
+
+  ${mq.sm.min(css`
+    font-size: 2.5rem;
+  `)}
+`
+
+const Description = styled(Typography)(
+  ({ theme }) => css`
+    line-height: 1.4;
+    color: ${theme.colors.grey};
+    font-size: ${theme.fontSizes.large};
+  `
+)
 
 export default function Home() {
-  const isMounted = useIsMounted() // Prevent Next.js hydration errors
-  const { address } = useAccount() // Get the user's connected wallet address
+  const isMounted = useIsMounted()
+  const { address, isConnected } = useAccount()
 
-  const { data: ensName } = useEnsName({
-    address,
-    chainId: 1, // We always want to use ETH mainnet for ENS lookups
+  const idOf = useContractRead({
+    ...ID_REGISTRY,
+    chainId: 5,
+    functionName: isMounted && isConnected ? 'idOf' : undefined,
+    args: address ? [address] : undefined,
   })
 
   return (
     <>
       <Head>
-        <title>Web3 Starter</title>
-        <meta name="description" content="" />
+        <title>Farcaster Account Recovery</title>
+        <meta
+          name="description"
+          content="Easily set a recovery address for your Farcaster account"
+        />
 
         <meta property="og:image" content="" />
-        <meta property="og:title" content="" />
-        <meta property="og:description" content="" />
+        <meta property="og:title" content="Farcaster Account Recovery" />
+        <meta
+          property="og:description"
+          content="Easily set a recovery address for your Farcaster account"
+        />
       </Head>
 
       <Layout>
         <Nav />
 
-        <Container
-          as="main"
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          <h1>Web3 Starter</h1>
-          <p>
-            This template lays the groundwork needed to build a website that
-            interacts with EVM-compatible blockchains like Ethereum.
-          </p>
-
-          {/* If the page is hydrated and the user is connected, show their address */}
-          {isMounted && address ? (
-            <p>Connected with {ensName ?? address}</p>
+        <Container as="main">
+          {!!idOf.data ? (
+            <UpdateRecoveryAddress fid={idOf.data} />
           ) : (
-            <ConnectButton />
+            <Wrapper>
+              <Title>Set a Recovery Address for Your Farcaster Account</Title>
+              <Description>
+                Connect the wallet that holds your Farcaster ID
+              </Description>
+
+              {idOf.isLoading ? (
+                <Spinner />
+              ) : idOf.data === BigInt(0) ? (
+                <Helper type="error">This address does not have an FID</Helper>
+              ) : (
+                <ConnectButton />
+              )}
+            </Wrapper>
           )}
         </Container>
 
