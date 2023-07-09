@@ -1,9 +1,7 @@
 import { Button, Profile, mq } from '@ensdomains/thorin'
 import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import styled, { css } from 'styled-components'
-import { useAccount } from 'wagmi'
-
-import { useIsMounted } from '../hooks/useIsMounted'
+import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
 
 const StyledButton = styled(Button)(
   ({ theme, size }) => css`
@@ -54,17 +52,25 @@ const ProfileMobile = styled(Profile)`
 `
 
 export function ConnectButton({ size }: { size?: 'small' }) {
-  const isMounted = useIsMounted()
   const { address } = useAccount()
+  const { data: ensName } = useEnsName({ address, chainId: 1 })
+  const { data: ensAvatar } = useEnsAvatar({ name: ensName })
   const { openConnectModal } = useConnectModal()
   const { openAccountModal } = useAccountModal()
 
   if (address) {
     return (
       <>
-        <ProfileMedium address={address} onClick={openAccountModal} />
+        <ProfileMedium
+          address={address}
+          ensName={ensName || undefined}
+          avatar={ensAvatar || undefined}
+          onClick={openAccountModal}
+        />
         <ProfileMobile
           address={address}
+          ensName={ensName || undefined}
+          avatar={ensAvatar || undefined}
           size="small"
           onClick={openAccountModal}
         />
