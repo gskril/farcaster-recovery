@@ -1,7 +1,7 @@
 import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin'
 import Head from 'next/head'
 import styled, { css } from 'styled-components'
-import { useAccount, useContractRead } from 'wagmi'
+import { useAccount, useContractRead, useDisconnect } from 'wagmi'
 
 import { ConnectButton } from '../components/ConnectButton'
 import { Footer } from '../components/Footer'
@@ -44,6 +44,7 @@ const Description = styled(Typography)(
 export default function Home() {
   const isMounted = useIsMounted()
   const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
 
   const idOf = useContractRead({
     ...ID_REGISTRY,
@@ -85,7 +86,27 @@ export default function Home() {
               {idOf.isLoading ? (
                 <Spinner />
               ) : idOf.data === BigInt(0) ? (
-                <Helper type="error">This address does not have an FID</Helper>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.375rem',
+                    width: '100%',
+                  }}
+                >
+                  <Helper type="error">
+                    This address does not have an FID
+                  </Helper>
+                  <button
+                    onClick={() => disconnect?.()}
+                    style={{
+                      width: 'fit-content',
+                      margin: '0 auto',
+                    }}
+                  >
+                    Disconnect
+                  </button>
+                </div>
               ) : (
                 <ConnectButton />
               )}
