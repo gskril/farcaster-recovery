@@ -16,7 +16,6 @@ export function FarcasterIcon() {
         fill="currentColor"
       />
       <path d="M20 1H4V4.14286H20V1Z" fill="currentColor" />
-      <path d="M20 3.35714H4V4.14286H20V3.35714Z" fill="currentColor" />
       <path
         d="M23.2 7.28571H0.8L0 4.14286H24L23.2 7.28571Z"
         fill="currentColor"
