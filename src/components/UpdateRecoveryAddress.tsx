@@ -1,4 +1,4 @@
-import { Button, Input, Spinner } from '@ensdomains/thorin'
+import { Button, Input, Spinner, Typography } from '@ensdomains/thorin'
 import { useState } from 'react'
 import { isAddress } from 'viem'
 import {
@@ -73,16 +73,30 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
         from this address.
       </CardDescription>
 
-      <Input
-        type="text"
-        hideLabel
-        label="Address or ENS name"
-        placeholder="Address or ENS name"
-        disabled={tx.isLoading || !!tx.data}
-        suffix={ensAddressIsLoading ? <Spinner /> : null}
-        description={ensAddress ? recoveryAddress : null}
-        onChange={(e) => setRecoveryInput(e.target.value)}
-      />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.375rem',
+          width: '100%',
+        }}
+      >
+        <Input
+          type="text"
+          hideLabel
+          label="Address or ENS name"
+          placeholder="Address or ENS name"
+          disabled={tx.isLoading || !!tx.data}
+          suffix={ensAddressIsLoading ? <Spinner /> : null}
+          onChange={(e) => setRecoveryInput(e.target.value)}
+        />
+
+        {ensAddress && (
+          <Typography fontVariant="labelHeading" color="textTertiary">
+            {recoveryAddress}
+          </Typography>
+        )}
+      </div>
 
       {tx.data ? (
         <Button
