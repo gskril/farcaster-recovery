@@ -101,7 +101,7 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
       {tx.data ? (
         <Button
           loading={receipt.isLoading}
-          colorStyle={receipt.isError ? 'redPrimary' : undefined}
+          colorStyle={receipt.isError ? 'redPrimary' : 'purplePrimary'}
           as="a"
           href={`https://goerli.etherscan.io/tx/${tx.data.hash}`}
           target="_blank"
@@ -114,6 +114,7 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
         </Button>
       ) : (
         <Button
+          colorStyle="purplePrimary"
           onClick={() => tx.write?.()}
           disabled={!recoveryAddress || !tx.write || tx.isLoading}
         >
