@@ -96,7 +96,14 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
         />
 
         {ensAddress && (
-          <Typography fontVariant="labelHeading" color="textTertiary">
+          <Typography
+            fontVariant="labelHeading"
+            color="textTertiary"
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {recoveryAddress}
           </Typography>
         )}
