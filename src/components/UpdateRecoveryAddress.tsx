@@ -1,4 +1,10 @@
-import { Button, Input, Spinner, Typography } from '@ensdomains/thorin'
+import {
+  Button,
+  Input,
+  OutlinkSVG,
+  Spinner,
+  Typography,
+} from '@ensdomains/thorin'
 import { useState } from 'react'
 import { isAddress } from 'viem'
 import {
@@ -111,9 +117,10 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
 
       {tx.data ? (
         <Button
+          as="a"
+          suffix={<OutlinkSVG />}
           loading={receipt.isLoading}
           colorStyle={receipt.isError ? 'redPrimary' : 'purplePrimary'}
-          as="a"
           href={`https://goerli.etherscan.io/tx/${tx.data.hash}`}
           target="_blank"
         >
@@ -121,7 +128,7 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
             ? 'Success!'
             : receipt.isError
             ? 'Transaction Failed'
-            : 'Loading'}
+            : 'Pending'}
         </Button>
       ) : chain?.id !== 5 ? (
         <Button colorStyle="purplePrimary" onClick={() => switchNetwork?.(5)}>
