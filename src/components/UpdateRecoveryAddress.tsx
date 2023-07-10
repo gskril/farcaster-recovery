@@ -4,7 +4,9 @@ import { isAddress } from 'viem'
 import {
   useContractWrite,
   useEnsAddress,
+  useNetwork,
   usePrepareContractWrite,
+  useSwitchNetwork,
   useWaitForTransaction,
 } from 'wagmi'
 
@@ -25,6 +27,8 @@ type SearchcasterResponse = {
 export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
   const [_recoveryInput, setRecoveryInput] = useState<string>()
   const recoveryInput = useDebounce(_recoveryInput, 500)
+  const { chain } = useNetwork()
+  const { switchNetwork } = useSwitchNetwork()
 
   // Resolve potential ENS names
   const { data: ensAddress, isLoading: ensAddressIsLoading } = useEnsAddress({
@@ -111,6 +115,10 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
             : receipt.isError
             ? 'Transaction Failed'
             : 'Loading'}
+        </Button>
+      ) : chain?.id !== 5 ? (
+        <Button colorStyle="purplePrimary" onClick={() => switchNetwork?.(5)}>
+          Switch to Goerli
         </Button>
       ) : (
         <Button
