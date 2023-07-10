@@ -94,10 +94,9 @@ export default function Home() {
                     width: '100%',
                   }}
                 >
-                  <Helper type="error">
+                  <Helper type="warning">
                     This address does not have an FID. Import your
-                    Warpcast-provided seed phrase to a wallet app of your choice
-                    and reconnect.
+                    Warpcast-provided seed phrase to a wallet app and reconnect.
                   </Helper>
                   <button
                     onClick={() => disconnect?.()}
