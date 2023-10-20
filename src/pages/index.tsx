@@ -74,8 +74,8 @@ export default function Home() {
         <Nav />
 
         <Container as="main">
-          {!!idOf.data ? (
-            <UpdateRecoveryAddress fid={idOf.data} />
+          {!!idOf.data && address ? (
+            <UpdateRecoveryAddress address={address} fid={idOf.data} />
           ) : (
             <Wrapper>
               <Title>Set a Recovery Address for Your Farcaster Account</Title>
@@ -95,8 +95,7 @@ export default function Home() {
                   }}
                 >
                   <Helper type="warning">
-                    This address does not have an FID. Import your
-                    Warpcast-provided seed phrase to a wallet app and reconnect.
+                    This address does not have an FID
                   </Helper>
                   <button
                     onClick={() => disconnect?.()}

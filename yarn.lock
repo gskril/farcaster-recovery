@@ -1249,10 +1249,10 @@
   resolved "https://registry.yarnpkg.com/@emotion/unitless/-/unitless-0.8.1.tgz#182b5a4704ef8ad91bde93f7a860a88fd92c79a3"
   integrity sha512-KOEGMu6dmJZtpadb476IsZBclKvILjopjUii3V+7MnXIQCYh8W3NgNcgwo21n9LXZX6EDIKvqfjYxXebDwxKmQ==
 
-"@ensdomains/thorin@^0.6.40":
-  version "0.6.40"
-  resolved "https://registry.yarnpkg.com/@ensdomains/thorin/-/thorin-0.6.40.tgz#72fcb04cc76ebb78f8ebc670266f0c8a3ae72a3c"
-  integrity sha512-OhrytIvMraNT8B9xYF9HTp1cKzs3dT9z2LYTV9/kNTqsIJZYTzpwABhfKBHvnYNHx5gM0pVVcOem/93sVt2UMg==
+"@ensdomains/thorin@^0.6.41":
+  version "0.6.41"
+  resolved "https://registry.yarnpkg.com/@ensdomains/thorin/-/thorin-0.6.41.tgz#0a9dd5206ca272d36861a325e3a6e137cea3a9f6"
+  integrity sha512-3JERXPop+liW8/cV1OO+dLe7g5OdJzb5j6KysQ4Oh82KpBNqfn3MaQMy+fOPOkR+gG4IE0Iwq2bO002A1SFD7A==
   dependencies:
     clsx "^1.1.1"
     focus-visible "^5.2.0"

@@ -1,13 +1,15 @@
 import {
   Button,
+  Helper,
   Input,
   OutlinkSVG,
   Spinner,
   Typography,
 } from '@ensdomains/thorin'
 import { useState } from 'react'
-import { isAddress } from 'viem'
+import { Address, isAddress } from 'viem'
 import {
+  useContractRead,
   useContractWrite,
   useEnsAddress,
   useNetwork,
@@ -15,22 +17,31 @@ import {
   useSwitchNetwork,
   useWaitForTransaction,
 } from 'wagmi'
+import { optimism } from 'wagmi/chains'
 
 import { ID_REGISTRY } from '../contracts'
 import useDebounce from '../hooks/useDebounce'
 import { useFetch } from '../hooks/useFetch'
+import { truncateAddress } from '../utils'
 import { Card, CardDescription } from './atoms'
 
-type SearchcasterResponse = {
-  body: {
-    id: number
-    username: string
-    displayName: string
-    avatarUrl: string
+type ApiResponse = {
+  result: {
+    user: {
+      fid: number
+      username: string
+      displayName: string
+      pfp: {
+        url: string
+        verified: boolean
+      }
+    }
   }
 }
 
-export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
+type Props = { address: Address; fid: bigint }
+
+export function UpdateRecoveryAddress({ address, fid }: Props) {
   const [_recoveryInput, setRecoveryInput] = useState<string>()
   const recoveryInput = useDebounce(_recoveryInput, 500)
   const { chain } = useNetwork()
@@ -52,9 +63,16 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
       : undefined
     : undefined
 
+  // Get the current recovery address
+  const { data: currentRecoveryAddress } = useContractRead({
+    ...ID_REGISTRY,
+    functionName: 'recoveryOf',
+    args: [fid],
+  })
+
   const prepareTx = usePrepareContractWrite({
     ...ID_REGISTRY,
-    chainId: 5,
+    chainId: optimism.id,
     functionName: !!recoveryAddress ? 'changeRecoveryAddress' : undefined,
     args: recoveryAddress ? [recoveryAddress] : undefined,
   })
@@ -62,10 +80,10 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
   const tx = useContractWrite(prepareTx.config)
   const receipt = useWaitForTransaction({ hash: tx.data?.hash })
 
-  const farcasterAccount = useFetch<SearchcasterResponse[]>(
-    `https://searchcaster.xyz/api/profiles?fid=${fid}`
+  const farcasterAccount = useFetch<ApiResponse>(
+    `/api/user-by-verification?address=${address}`
   )
-  const farcasterUsername = farcasterAccount.data?.[0].body.username
+  const farcasterUsername = farcasterAccount.data?.result.user.username
 
   if (!farcasterAccount.data && !farcasterAccount.error) {
     return (
@@ -121,7 +139,7 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
           suffix={<OutlinkSVG />}
           loading={receipt.isLoading}
           colorStyle={receipt.isError ? 'redPrimary' : 'purplePrimary'}
-          href={`https://goerli.etherscan.io/tx/${tx.data.hash}`}
+          href={`https://optimistic.etherscan.io/tx/${tx.data.hash}`}
           target="_blank"
         >
           {receipt.isSuccess
@@ -130,9 +148,12 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
             ? 'Transaction Failed'
             : 'Pending'}
         </Button>
-      ) : chain?.id !== 5 ? (
-        <Button colorStyle="purplePrimary" onClick={() => switchNetwork?.(5)}>
-          Switch to Goerli
+      ) : chain?.unsupported ? (
+        <Button
+          colorStyle="purplePrimary"
+          onClick={() => switchNetwork?.(optimism.id)}
+        >
+          Switch to OP Mainnet
         </Button>
       ) : (
         <Button
@@ -146,6 +167,13 @@ export function UpdateRecoveryAddress({ fid }: { fid: BigInt }) {
             ? 'Error Preparing Transaction'
             : 'Set Recovery Address'}
         </Button>
+      )}
+
+      {currentRecoveryAddress && !tx.data && (
+        <Helper>
+          Your current recovery address is{' '}
+          {truncateAddress(currentRecoveryAddress)}
+        </Helper>
       )}
     </Card>
   )
