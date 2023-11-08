@@ -2,6 +2,7 @@ import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin'
 import Head from 'next/head'
 import styled, { css } from 'styled-components'
 import { useAccount, useContractRead, useDisconnect } from 'wagmi'
+import { optimism } from 'wagmi/chains'
 
 import { ConnectButton } from '../components/ConnectButton'
 import { Footer } from '../components/Footer'
@@ -48,7 +49,7 @@ export default function Home() {
 
   const idOf = useContractRead({
     ...ID_REGISTRY,
-    chainId: 5,
+    chainId: optimism.id,
     functionName: isMounted && isConnected ? 'idOf' : undefined,
     args: address ? [address] : undefined,
   })
