@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ethers } from 'ethers'
+import { Mnemonic, Wallet, ethers, randomBytes } from 'ethers'
 import { Button, Typography } from '@ensdomains/thorin'
 import { Card, CardDescription } from './atoms'
 
@@ -24,7 +24,12 @@ const GenerateMnemonic = () => {
       }
     }
 
-    const wallet = ethers.Wallet.createRandom()
+    // Specify path and word count for a 24-word mnemonic
+    const entropy = randomBytes(32); // Generate 256 bits of entropy
+    const mnemonic = Mnemonic.fromEntropy(entropy);
+    const wallet = Wallet.fromPhrase(mnemonic.phrase);
+
+
     setWalletInfo({
       mnemonic: wallet.mnemonic ? wallet.mnemonic.phrase : '',
       address: wallet.address,
