@@ -96,9 +96,9 @@ const HomeContent = () => {
           </>
         ) : (
           <Wrapper>
-            <Title>Set a Recovery Address for Your Farcaster Account</Title>
+            <Title>Manage & Recover FID Accounts</Title>
             <Description>
-              Connect the wallet that holds your Farcaster ID
+              Connect a wallet associated with a Farcaster ID
             </Description>
 
             {idOfLoading ? (

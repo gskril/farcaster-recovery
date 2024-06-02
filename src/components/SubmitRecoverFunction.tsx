@@ -57,7 +57,7 @@ const SubmitRecoverFunction = () => {
   return (
     <Card title="Submit Recovery Transaction">
       <CardDescription>
-        Use this form to submit the recovery transaction using the previously generated signature. You can modify the values if necessary.
+        Submit a recovery transaction using the previously generated signature signed by receiving address. Send this transaction from the recovery address.
       </CardDescription>
       <Input
         label="From Address"

@@ -53,7 +53,7 @@ const SubmitTransferFunction = () => {
   return (
     <Card title="Submit Transfer Transaction">
       <CardDescription>
-        Use this form to submit the transfer transaction using the previously generated signature. You can modify the values if necessary.
+        Use this form to submit the transfer transaction using the previously generated signature signed by receiving address. Send this tx from the custody address.
       </CardDescription>
       <Input
         label="To Address"

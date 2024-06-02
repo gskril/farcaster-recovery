@@ -89,7 +89,7 @@ const GenerateTransferSignature = ({ fid, contractAddress }) => {
   return (
     <Card title="Generate EIP-712 Transfer Signature">
       <CardDescription>
-        Use this tool to generate an EIP-712 signature for transferring a Farcaster ID.
+        Create & sign an EIP-712 message for transferring FID to another address using the receiving `To` address for the signature.
       </CardDescription>
       <Typography as="p" style={{ fontSize: '0.8rem', color: 'gray' }}>
         Deadline (1 year from now): {deadlineDate} (UNIX: {deadline})
