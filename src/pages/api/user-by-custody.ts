@@ -17,7 +17,7 @@ export default async function handler(
         headers: {
           accept: 'application/json',
           api_key: process.env.NEYNAR_API,
-        },
+        } as HeadersInit,
       }
     )
 
@@ -27,7 +27,7 @@ export default async function handler(
 
     const data = await response.json()
     return res.status(200).json(data)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch data from Neynar:', error)
     return res.status(500).json({ error: error.message })
   }

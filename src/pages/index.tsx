@@ -88,11 +88,11 @@ const HomeContent = () => {
               <GridContainer>
                 <UpdateRecoveryAddress
                   address={address}
-                  fid={user?.fid || fid}
+                  fid={user?.fid ? BigInt(user.fid) : BigInt(0)}
                 />
                 <GenerateMnemonic />
                 <GenerateTransferSignature
-                  fid={user?.fid || fid}
+                  {...(user?.fid && { fid: BigInt(user.fid) })}
                   contractAddress="0x00000000fc6c5f01fc30151999387bb99a9f489b"
                 />
                 <SubmitRecoverFunction />

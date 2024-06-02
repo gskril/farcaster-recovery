@@ -26,7 +26,7 @@ const GenerateMnemonic = () => {
 
     const wallet = ethers.Wallet.createRandom()
     setWalletInfo({
-      mnemonic: wallet.mnemonic.phrase,
+      mnemonic: wallet.mnemonic ? wallet.mnemonic.phrase : '',
       address: wallet.address,
       privateKey: wallet.privateKey,
     })

@@ -118,6 +118,7 @@ const FarcasterUserInfo = ({ address }: Props) => {
         }}
       >
         <Input
+          label="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Enter a Farcaster username or leave blank for connected address"
