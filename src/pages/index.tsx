@@ -1,22 +1,25 @@
-import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin';
-import Head from 'next/head';
-import styled, { css } from 'styled-components';
-import { useAccount, useContractRead, useDisconnect } from 'wagmi';
-import { optimism } from 'wagmi/chains';
+import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin'
+import Head from 'next/head'
+import styled, { css } from 'styled-components'
+import { useAccount, useContractRead, useDisconnect } from 'wagmi'
+import { optimism } from 'wagmi/chains'
 
-import { ConnectButton } from '../components/ConnectButton';
-import { Footer } from '../components/Footer';
-import { Nav } from '../components/Nav';
-import { UpdateRecoveryAddress } from '../components/UpdateRecoveryAddress';
-import { Container, Layout } from '../components/atoms';
-import { ID_REGISTRY } from '../contracts';
-import { useIsMounted } from '../hooks/useIsMounted';
-import GenerateTransferSignature from '../components/GenerateTransferSignature';
-import GenerateMnemonic from '../components/GenerateMnemonic';
-import FarcasterUserInfo from '../components/FarcasterUserInfo';
-import SubmitRecoverFunction from '../components/SubmitRecoverFunction';
-import SubmitTransferFunction from '../components/SubmitTransferFunction';
-import { FarcasterUserProvider, useFarcasterUser } from '../components/FarcasterUserContext';
+import { ConnectButton } from '../components/ConnectButton'
+import { Footer } from '../components/Footer'
+import { Nav } from '../components/Nav'
+import { UpdateRecoveryAddress } from '../components/UpdateRecoveryAddress'
+import { Container, Layout } from '../components/atoms'
+import { ID_REGISTRY } from '../contracts'
+import { useIsMounted } from '../hooks/useIsMounted'
+import GenerateTransferSignature from '../components/GenerateTransferSignature'
+import GenerateMnemonic from '../components/GenerateMnemonic'
+import FarcasterUserInfo from '../components/FarcasterUserInfo'
+import SubmitRecoverFunction from '../components/SubmitRecoverFunction'
+import SubmitTransferFunction from '../components/SubmitTransferFunction'
+import {
+  FarcasterUserProvider,
+  useFarcasterUser,
+} from '../components/FarcasterUserContext'
 
 const Wrapper = styled.div(
   ({ theme }) => css`
@@ -27,7 +30,7 @@ const Wrapper = styled.div(
     flex-direction: column;
     justify-content: center;
   `
-);
+)
 
 const Title = styled(Heading)`
   font-size: 2rem;
@@ -38,7 +41,7 @@ const Title = styled(Heading)`
   ${mq.sm.min(css`
     font-size: 2.5rem;
   `)}
-`;
+`
 
 const Description = styled(Typography)(
   ({ theme }) => css`
@@ -46,7 +49,7 @@ const Description = styled(Typography)(
     color: ${theme.colors.grey};
     font-size: ${theme.fontSizes.large};
   `
-);
+)
 
 const GridContainer = styled.div(
   ({ theme }) => css`
@@ -55,13 +58,14 @@ const GridContainer = styled.div(
     gap: ${theme.space['4']};
     padding: ${theme.space['4']};
   `
-);
+)
 
 const HomeContent = () => {
-  const isMounted = useIsMounted();
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { fid, recoveryAddress, user, signature, timestamp } = useFarcasterUser();
+  const isMounted = useIsMounted()
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { fid, recoveryAddress, user, signature, timestamp } =
+    useFarcasterUser()
 
   const { data: idOfData, isLoading: idOfLoading } = useContractRead({
     ...ID_REGISTRY,
@@ -70,7 +74,7 @@ const HomeContent = () => {
     args: address ? [address] : undefined,
     watch: true,
     enabled: isMounted && isConnected,
-  });
+  })
 
   return (
     <Layout>
@@ -82,15 +86,22 @@ const HomeContent = () => {
             <FarcasterUserInfo address={address} />
             {(user && user.fid) || signature ? (
               <GridContainer>
-                <UpdateRecoveryAddress address={address} fid={user?.fid || fid} />
+                <UpdateRecoveryAddress
+                  address={address}
+                  fid={user?.fid || fid}
+                />
                 <GenerateMnemonic />
-                <GenerateTransferSignature fid={user?.fid || fid} contractAddress="0x00000000fc6c5f01fc30151999387bb99a9f489b" />
+                <GenerateTransferSignature
+                  fid={user?.fid || fid}
+                  contractAddress="0x00000000fc6c5f01fc30151999387bb99a9f489b"
+                />
                 <SubmitRecoverFunction />
                 <SubmitTransferFunction />
               </GridContainer>
             ) : (
               <Typography color="red">
-                This address does not have an FID or the FID is not yet loaded. Please check the connected wallet or provide a username.
+                This address does not have an FID or the FID is not yet loaded.
+                Please check the connected wallet or provide a username.
               </Typography>
             )}
           </>
@@ -101,19 +112,15 @@ const HomeContent = () => {
               Connect a wallet associated with a Farcaster ID
             </Description>
 
-            {idOfLoading ? (
-              <Spinner />
-            ) : (
-              <ConnectButton />
-            )}
+            {idOfLoading ? <Spinner /> : <ConnectButton />}
           </Wrapper>
         )}
       </Container>
 
       <Footer />
     </Layout>
-  );
-};
+  )
+}
 
 export default function Home() {
   return (
@@ -137,5 +144,5 @@ export default function Home() {
         <HomeContent />
       </FarcasterUserProvider>
     </>
-  );
+  )
 }
