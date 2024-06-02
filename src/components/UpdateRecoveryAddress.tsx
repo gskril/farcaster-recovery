@@ -5,9 +5,9 @@ import {
   OutlinkSVG,
   Spinner,
   Typography,
-} from '@ensdomains/thorin'
-import { useState } from 'react'
-import { Address, isAddress } from 'viem'
+} from '@ensdomains/thorin';
+import { useState } from 'react';
+import { Address, isAddress } from 'viem';
 import {
   useContractRead,
   useContractWrite,
@@ -16,81 +16,79 @@ import {
   usePrepareContractWrite,
   useSwitchNetwork,
   useWaitForTransaction,
-} from 'wagmi'
-import { optimism } from 'wagmi/chains'
+} from 'wagmi';
+import { optimism } from 'wagmi/chains';
 
-import { ID_REGISTRY } from '../contracts'
-import useDebounce from '../hooks/useDebounce'
-import { useFetch } from '../hooks/useFetch'
-import { truncateAddress } from '../utils'
-import { Card, CardDescription } from './atoms'
+import { ID_REGISTRY } from '../contracts';
+import useDebounce from '../hooks/useDebounce';
+import { useFetch } from '../hooks/useFetch';
+import { truncateAddress } from '../utils';
+import { Card, CardDescription } from './atoms';
+import { useFarcasterUser } from './FarcasterUserContext';
 
 type ApiResponse = {
-  result: {
-    user: {
-      fid: number
-      username: string
-      displayName: string
-      pfp: {
-        url: string
-        verified: boolean
-      }
-    }
-  }
+  user: {
+    fid: number;
+    username: string;
+    display_name: string;
+    pfp_url: string;
+    verified: boolean;
+  };
 }
 
-type Props = { address: Address; fid: bigint }
+type Props = { address: Address; fid: bigint };
 
 export function UpdateRecoveryAddress({ address, fid }: Props) {
-  const [_recoveryInput, setRecoveryInput] = useState<string>()
-  const recoveryInput = useDebounce(_recoveryInput, 500)
-  const { chain } = useNetwork()
-  const { switchNetwork } = useSwitchNetwork()
+  const { user } = useFarcasterUser();
+  const [_recoveryInput, setRecoveryInput] = useState<string>();
+  const recoveryInput = useDebounce(_recoveryInput, 500);
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
 
   // Resolve potential ENS names
   const { data: ensAddress, isLoading: ensAddressIsLoading } = useEnsAddress({
     name: recoveryInput,
     chainId: 1,
     enabled: recoveryInput?.includes('.'),
-  })
+  });
 
-  // Set the recovery address (address if provided directly or resolved address from ENS name)
   const recoveryAddress = !!recoveryInput
     ? isAddress(recoveryInput)
       ? recoveryInput
       : !!ensAddress
       ? ensAddress
       : undefined
-    : undefined
+    : undefined;
 
   // Get the current recovery address
   const { data: currentRecoveryAddress } = useContractRead({
     ...ID_REGISTRY,
     functionName: 'recoveryOf',
     args: [fid],
-  })
+  });
 
   const prepareTx = usePrepareContractWrite({
     ...ID_REGISTRY,
     chainId: optimism.id,
     functionName: !!recoveryAddress ? 'changeRecoveryAddress' : undefined,
     args: recoveryAddress ? [recoveryAddress] : undefined,
-  })
+  });
 
-  const tx = useContractWrite(prepareTx.config)
-  const receipt = useWaitForTransaction({ hash: tx.data?.hash })
+  const tx = useContractWrite(prepareTx.config);
+  const receipt = useWaitForTransaction({ hash: tx.data?.hash });
 
   const farcasterAccount = useFetch<ApiResponse>(
-    `/api/user-by-verification?address=${address}`
-  )
-  const farcasterUsername = farcasterAccount.data?.result.user.username
+    `/api/user-by-custody?custody_address=${address}`
+  );
+
+  const farcasterUsername = user?.username || farcasterAccount.data?.user.username;
 
   if (!farcasterAccount.data && !farcasterAccount.error) {
     return (
       <Card>
         <Spinner />
       </Card>
-    )
+    );
   }
 
   return (
@@ -168,13 +166,15 @@ export function UpdateRecoveryAddress({ address, fid }: Props) {
             : 'Set Recovery Address'}
         </Button>
       )}
+      {
+  currentRecoveryAddress && !tx.data && (
+          <Helper>
+            Your current recovery address is{' '}
+            {truncateAddress(currentRecoveryAddress)}
+          </Helper>
+        )}
 
-      {currentRecoveryAddress && !tx.data && (
-        <Helper>
-          Your current recovery address is{' '}
-          {truncateAddress(currentRecoveryAddress)}
-        </Helper>
-      )}
+
     </Card>
-  )
+  );
 }
