@@ -6,11 +6,16 @@ import { ID_REGISTRY } from '../contracts';
 import { Card, CardDescription } from './atoms';
 import { useFarcasterUser } from './FarcasterUserContext';
 
-const GenerateTransferSignature = ({ fid, contractAddress }) => {
+const GenerateTransferSignature = ({ contractAddress }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [copyStatus, setCopyStatus] = useState('');
   const { address, isConnected } = useAccount();
-  const { signature, setSignature, setTimestamp, timestamp, toAddress, setToAddress } = useFarcasterUser();
+  const { signature, setSignature, setTimestamp, timestamp, toAddress, setToAddress, fid: userFid } = useFarcasterUser();
+  const [fid, setFid] = useState(userFid);
+
+  useEffect(() => {
+    setFid(userFid);
+  }, [userFid]);
 
   const isAddressValid = toAddress && /^0x[a-fA-F0-9]{40}$/.test(toAddress);
 
@@ -41,7 +46,7 @@ const GenerateTransferSignature = ({ fid, contractAddress }) => {
   const deadlineDate = new Date(deadline * 1000).toLocaleString(); // Convert to human-readable format
 
   const value = {
-    fid,
+    fid: parseInt(fid),
     to: toAddress,
     nonce: parseInt(nonceData?.toString() || '0'),
     deadline,
@@ -94,6 +99,12 @@ const GenerateTransferSignature = ({ fid, contractAddress }) => {
       <Typography as="p" style={{ fontSize: '0.8rem', color: 'gray' }}>
         Deadline (1 year from now): {deadlineDate} (UNIX: {deadline})
       </Typography>
+      <Input
+        label="FID"
+        value={fid}
+        onChange={(e) => setFid(e.target.value)}
+        placeholder="Enter FID"
+      />
       <Input
         label="To Address"
         value={toAddress}
