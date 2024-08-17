@@ -69,6 +69,7 @@ export function TransferFid({ address, fid }: Props) {
 
   const tx = useContractWrite(prepareTx.config)
   const receipt = useWaitForTransaction({ hash: tx.data?.hash })
+  const canRecover = ownerOfFid === address || recovererOfFid === address
 
   return (
     <Card title="Transfer Your FID">
@@ -77,21 +78,23 @@ export function TransferFid({ address, fid }: Props) {
         phrase.
       </CardDescription>
 
-      <Skeleton loading={transferData.isLoading}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.375rem',
-            width: '100%',
-          }}
-        >
-          <RecordItem value={mnemonic || ''}>
-            {mnemonic ||
-              'test test test test test test test test test test test test'}
-          </RecordItem>
-        </div>
-      </Skeleton>
+      {canRecover && (
+        <Skeleton loading={transferData.isLoading}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.375rem',
+              width: '100%',
+            }}
+          >
+            <RecordItem value={mnemonic || ''}>
+              {mnemonic ||
+                'test test test test test test test test test test test test'}
+            </RecordItem>
+          </div>
+        </Skeleton>
+      )}
 
       <Input
         defaultValue={fid?.toString()}
@@ -128,7 +131,7 @@ export function TransferFid({ address, fid }: Props) {
         >
           Switch to OP Mainnet
         </Button>
-      ) : ownerOfFid !== address && recovererOfFid !== address ? (
+      ) : !canRecover ? (
         <Button disabled>You can&apos;t transfer this FID</Button>
       ) : (
         <Button
@@ -150,11 +153,13 @@ export function TransferFid({ address, fid }: Props) {
         </Button>
       )}
 
-      <Helper type="warning">
-        Store this seed phrase in a secure place. You will need it to login to
-        Warpcast. This website does not store your seed phrase so it cannot be
-        recovered.
-      </Helper>
+      {canRecover && (
+        <Helper type="warning">
+          Store this seed phrase in a secure place. You will need it to login to
+          Warpcast. This website does not store your seed phrase so it cannot be
+          recovered.
+        </Helper>
+      )}
     </Card>
   )
 }
