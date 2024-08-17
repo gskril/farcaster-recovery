@@ -3,6 +3,8 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import styled, { css } from 'styled-components'
 import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
 
+import { useIsMounted } from '../hooks/useIsMounted'
+
 const StyledButton = styled(Button)(
   ({ theme, size }) => css`
     ${size === 'small'
@@ -54,9 +56,14 @@ const ProfileMobile = styled(Profile)`
 export function ConnectButton({ size }: { size?: 'small' }) {
   const { address } = useAccount()
   const { data: ensName } = useEnsName({ address, chainId: 1 })
-  const { data: ensAvatar } = useEnsAvatar({ name: ensName })
+  const { data: ensAvatar } = useEnsAvatar({ name: ensName, chainId: 1 })
   const { openConnectModal } = useConnectModal()
   const { openAccountModal } = useAccountModal()
+  const isMounted = useIsMounted()
+
+  if (!isMounted) {
+    return null
+  }
 
   if (address) {
     return (

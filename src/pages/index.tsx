@@ -1,5 +1,6 @@
 import { Heading, Helper, Spinner, Typography, mq } from '@ensdomains/thorin'
 import Head from 'next/head'
+import { useState } from 'react'
 import styled, { css } from 'styled-components'
 import { useAccount, useContractRead, useDisconnect } from 'wagmi'
 import { optimism } from 'wagmi/chains'
@@ -7,6 +8,7 @@ import { optimism } from 'wagmi/chains'
 import { ConnectButton } from '../components/ConnectButton'
 import { Footer } from '../components/Footer'
 import { Nav } from '../components/Nav'
+import { TransferFid } from '../components/TransferFid'
 import { UpdateRecoveryAddress } from '../components/UpdateRecoveryAddress'
 import { Container, Layout } from '../components/atoms'
 import { ID_REGISTRY } from '../contracts'
@@ -46,11 +48,12 @@ export default function Home() {
   const isMounted = useIsMounted()
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
+  const [tool, setTool] = useState<'recovery' | 'transfer'>('recovery')
 
   const idOf = useContractRead({
     ...ID_REGISTRY,
     chainId: optimism.id,
-    functionName: isMounted && isConnected ? 'idOf' : undefined,
+    functionName: isConnected ? 'idOf' : undefined,
     args: address ? [address] : undefined,
   })
 
@@ -75,43 +78,71 @@ export default function Home() {
         <Nav />
 
         <Container as="main">
-          {!!idOf.data && address ? (
-            <UpdateRecoveryAddress address={address} fid={idOf.data} />
-          ) : (
-            <Wrapper>
-              <Title>Set a Recovery Address for Your Farcaster Account</Title>
-              <Description>
-                Connect the wallet that holds your Farcaster ID
-              </Description>
+          {(() => {
+            if (!isMounted) {
+              return null
+            }
 
-              {idOf.isLoading ? (
-                <Spinner />
-              ) : idOf.data === BigInt(0) ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.375rem',
-                    width: '100%',
-                  }}
-                >
-                  <Helper type="warning">
-                    This address does not have an FID
-                  </Helper>
-                  <button
-                    onClick={() => disconnect?.()}
+            if (!!idOf.data && !!address) {
+              if (tool === 'recovery') {
+                return (
+                  <UpdateRecoveryAddress address={address} fid={idOf.data} />
+                )
+              }
+
+              return <TransferFid address={address} fid={idOf.data} />
+            }
+
+            return (
+              <Wrapper>
+                <Title>Manage Your Farcaster Account Onchain</Title>
+                <Description>
+                  Connect the wallet that holds your Farcaster ID
+                </Description>
+
+                {idOf.isLoading ? (
+                  <Spinner />
+                ) : idOf.data === BigInt(0) ? (
+                  <div
                     style={{
-                      width: 'fit-content',
-                      margin: '0 auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.375rem',
+                      width: '100%',
                     }}
                   >
-                    Disconnect
-                  </button>
-                </div>
+                    <Helper type="warning">
+                      This address does not have an FID
+                    </Helper>
+                    <button
+                      onClick={() => disconnect?.()}
+                      style={{
+                        width: 'fit-content',
+                        margin: '0 auto',
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <ConnectButton />
+                )}
+              </Wrapper>
+            )
+          })()}
+
+          {!!idOf.data && !!address && isMounted && (
+            <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
+              {tool === 'recovery' ? (
+                <button onClick={() => setTool('transfer')}>
+                  Transfer FID instead
+                </button>
               ) : (
-                <ConnectButton />
+                <button onClick={() => setTool('recovery')}>
+                  Set recovery address instead
+                </button>
               )}
-            </Wrapper>
+            </div>
           )}
         </Container>
 

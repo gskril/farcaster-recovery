@@ -693,3 +693,21 @@ export const ID_REGISTRY = {
   address: ID_REGISTRY_ADDRESS,
   abi: ID_REGISTRY_ABI,
 }
+
+export const ID_REGISTRY_EIP_712_DOMAIN = {
+  name: 'Farcaster IdRegistry',
+  version: '1',
+  chainId: 10,
+  verifyingContract: ID_REGISTRY_ADDRESS,
+} as const
+
+const ID_REGISTRY_TRANSFER_TYPE = [
+  { name: 'fid', type: 'uint256' },
+  { name: 'to', type: 'address' },
+  { name: 'nonce', type: 'uint256' },
+  { name: 'deadline', type: 'uint256' },
+] as const
+
+export const ID_REGISTRY_EIP_712_TYPES = {
+  Transfer: ID_REGISTRY_TRANSFER_TYPE,
+} as const

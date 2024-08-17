@@ -3,6 +3,7 @@ import {
   Helper,
   Input,
   OutlinkSVG,
+  RecordItem,
   Spinner,
   Typography,
 } from '@ensdomains/thorin'
@@ -22,61 +23,38 @@ import { optimism } from 'wagmi/chains'
 import { ID_REGISTRY } from '../contracts'
 import useDebounce from '../hooks/useDebounce'
 import { useFetch } from '../hooks/useFetch'
-import { useIsMounted } from '../hooks/useIsMounted'
+import { usePrepareTransfer } from '../hooks/usePrepareTransfer'
 import { truncateAddress } from '../utils'
 import { Card, CardDescription } from './atoms'
 
-type ApiResponse = {
-  result: {
-    user: {
-      fid: number
-      username: string
-      displayName: string
-      pfp: {
-        url: string
-        verified: boolean
-      }
-    }
-  }
-}
-
 type Props = { address: Address; fid: bigint }
 
-export function UpdateRecoveryAddress({ address, fid }: Props) {
-  const [_recoveryInput, setRecoveryInput] = useState<string>()
-  const recoveryInput = useDebounce(_recoveryInput, 500)
+export function TransferFid({ address, fid }: Props) {
   const { chain } = useNetwork()
   const { switchNetwork } = useSwitchNetwork()
-  const isMounted = useIsMounted()
 
-  // Resolve potential ENS names
-  const { data: ensAddress, isLoading: ensAddressIsLoading } = useEnsAddress({
-    name: recoveryInput,
-    chainId: 1,
-    enabled: recoveryInput?.includes('.'),
-  })
+  const transferData = usePrepareTransfer({ fid })
+  const { mnemonic, newCustodyAddress, deadline, signature } =
+    transferData.data || {}
 
-  // Set the recovery address (address if provided directly or resolved address from ENS name)
-  const recoveryAddress = !!recoveryInput
-    ? isAddress(recoveryInput)
-      ? recoveryInput
-      : !!ensAddress
-      ? ensAddress
-      : undefined
-    : undefined
-
-  // Get the current recovery address
-  const { data: currentRecoveryAddress } = useContractRead({
+  // Get the current custody address
+  const { data: currentCustodyAddress } = useContractRead({
     ...ID_REGISTRY,
-    functionName: 'recoveryOf',
+    functionName: 'custodyOf',
     args: [fid],
   })
 
   const prepareTx = usePrepareContractWrite({
     ...ID_REGISTRY,
     chainId: optimism.id,
-    functionName: !!recoveryAddress ? 'changeRecoveryAddress' : undefined,
-    args: recoveryAddress ? [recoveryAddress] : undefined,
+    functionName: !!newCustodyAddress ? 'transfer' : undefined,
+    args: transferData.data
+      ? [
+          transferData.data.newCustodyAddress,
+          transferData.data.deadline,
+          transferData.data.signature,
+        ]
+      : undefined,
   })
 
   const tx = useContractWrite(prepareTx.config)
@@ -87,8 +65,6 @@ export function UpdateRecoveryAddress({ address, fid }: Props) {
   )
   const farcasterUsername = farcasterAccount.data?.username || undefined
 
-  if (!isMounted) return null
-
   if (!farcasterAccount.data && !farcasterAccount.error) {
     return (
       <Card>
@@ -98,47 +74,27 @@ export function UpdateRecoveryAddress({ address, fid }: Props) {
   }
 
   return (
-    <Card title="Set Your Recovery Address">
+    <Card title="Transfer Your FID">
       <CardDescription>
-        If you ever lose your Farcaster seed phrase, you&apos;ll be able to
-        recover{' '}
+        Move{' '}
         {farcasterUsername
           ? `@${farcasterUsername}`
           : `your account (FID #${fid.toString()})`}{' '}
-        from this address.
+        to a fresh wallet with the following seed phrase.
       </CardDescription>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.375rem',
-          width: '100%',
-        }}
-      >
-        <Input
-          type="text"
-          hideLabel
-          label="Address or ENS name"
-          placeholder="Address or ENS name"
-          disabled={tx.isLoading || !!tx.data}
-          suffix={ensAddressIsLoading ? <Spinner /> : null}
-          onChange={(e) => setRecoveryInput(e.target.value)}
-        />
-
-        {ensAddress && (
-          <Typography
-            fontVariant="labelHeading"
-            color="textTertiary"
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {recoveryAddress}
-          </Typography>
-        )}
-      </div>
+      {mnemonic && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.375rem',
+            width: '100%',
+          }}
+        >
+          <RecordItem value={mnemonic}>{mnemonic}</RecordItem>
+        </div>
+      )}
 
       {tx.data ? (
         <Button
@@ -166,20 +122,21 @@ export function UpdateRecoveryAddress({ address, fid }: Props) {
         <Button
           colorStyle="purplePrimary"
           onClick={() => tx.write?.()}
-          disabled={!recoveryAddress || !tx.write || tx.isLoading}
+          disabled={!newCustodyAddress || !tx.write || tx.isLoading}
         >
           {tx.isLoading
             ? 'Confirm in Wallet'
             : prepareTx.isError
             ? 'Error Preparing Transaction'
-            : 'Set Recovery Address'}
+            : 'Transfer FID'}
         </Button>
       )}
 
-      {currentRecoveryAddress && !tx.data && (
-        <Helper>
-          Your current recovery address is{' '}
-          {truncateAddress(currentRecoveryAddress)}
+      {!!mnemonic && (
+        <Helper type="warning">
+          Store this seed phrase in a secure place. You will need it to login to
+          Warpcast. This website does not store your seed phrase so it cannot be
+          recovered.
         </Helper>
       )}
     </Card>
