@@ -4,15 +4,13 @@ import {
   Input,
   OutlinkSVG,
   RecordItem,
-  Spinner,
-  Typography,
+  Skeleton,
 } from '@ensdomains/thorin'
 import { useState } from 'react'
-import { Address, isAddress } from 'viem'
+import { Address } from 'viem'
 import {
   useContractRead,
   useContractWrite,
-  useEnsAddress,
   useNetwork,
   usePrepareContractWrite,
   useSwitchNetwork,
@@ -22,9 +20,7 @@ import { optimism } from 'wagmi/chains'
 
 import { ID_REGISTRY } from '../contracts'
 import useDebounce from '../hooks/useDebounce'
-import { useFetch } from '../hooks/useFetch'
 import { usePrepareTransfer } from '../hooks/usePrepareTransfer'
-import { truncateAddress } from '../utils'
 import { Card, CardDescription } from './atoms'
 
 type Props = { address: Address; fid: bigint }
@@ -32,58 +28,56 @@ type Props = { address: Address; fid: bigint }
 export function TransferFid({ address, fid }: Props) {
   const { chain } = useNetwork()
   const { switchNetwork } = useSwitchNetwork()
+  const [_fidToTransfer, setFidToTransfer] = useState(fid)
+  const fidToTransfer = useDebounce(_fidToTransfer, 500)
 
-  const transferData = usePrepareTransfer({ fid })
-  const { mnemonic, newCustodyAddress, deadline, signature } =
-    transferData.data || {}
+  const transferData = usePrepareTransfer({ fid: fidToTransfer })
+  const { mnemonic, newCustodyAddress } = transferData.data || {}
 
-  // Get the current custody address
-  const { data: currentCustodyAddress } = useContractRead({
+  const { data: ownerOfFid } = useContractRead({
     ...ID_REGISTRY,
     functionName: 'custodyOf',
-    args: [fid],
+    args: [fidToTransfer],
+  })
+
+  const { data: recovererOfFid } = useContractRead({
+    ...ID_REGISTRY,
+    functionName: 'recoveryOf',
+    args: [fidToTransfer],
   })
 
   const prepareTx = usePrepareContractWrite({
     ...ID_REGISTRY,
     chainId: optimism.id,
-    functionName: !!newCustodyAddress ? 'transfer' : undefined,
+    functionName: fidToTransfer === fid ? 'transfer' : 'recover',
+    // @ts-expect-error - wagmi doesn't like the conditional args here but it works
     args: transferData.data
-      ? [
-          transferData.data.newCustodyAddress,
-          transferData.data.deadline,
-          transferData.data.signature,
-        ]
+      ? fidToTransfer === fid
+        ? [
+            transferData.data.newCustodyAddress,
+            transferData.data.deadline,
+            transferData.data.signature,
+          ]
+        : [
+            ownerOfFid, // The address to transfer the fid from, aka current owner of the fid
+            transferData.data.newCustodyAddress,
+            transferData.data.deadline,
+            transferData.data.signature,
+          ]
       : undefined,
   })
 
   const tx = useContractWrite(prepareTx.config)
   const receipt = useWaitForTransaction({ hash: tx.data?.hash })
 
-  const farcasterAccount = useFetch<{ username?: string }>(
-    `/api/user-by-fid?fid=${fid}`
-  )
-  const farcasterUsername = farcasterAccount.data?.username || undefined
-
-  if (!farcasterAccount.data && !farcasterAccount.error) {
-    return (
-      <Card>
-        <Spinner />
-      </Card>
-    )
-  }
-
   return (
     <Card title="Transfer Your FID">
       <CardDescription>
-        Move{' '}
-        {farcasterUsername
-          ? `@${farcasterUsername}`
-          : `your account (FID #${fid.toString()})`}{' '}
-        to a fresh wallet with the following seed phrase.
+        Move your Farcaster account to a fresh wallet with the following seed
+        phrase.
       </CardDescription>
 
-      {mnemonic && (
+      <Skeleton loading={transferData.isLoading}>
         <div
           style={{
             display: 'flex',
@@ -92,9 +86,25 @@ export function TransferFid({ address, fid }: Props) {
             width: '100%',
           }}
         >
-          <RecordItem value={mnemonic}>{mnemonic}</RecordItem>
+          <RecordItem value={mnemonic || ''}>
+            {mnemonic ||
+              'test test test test test test test test test test test test'}
+          </RecordItem>
         </div>
-      )}
+      </Skeleton>
+
+      <Input
+        defaultValue={fid?.toString()}
+        label="FID to transfer/recover"
+        onChange={(e) => {
+          // Test for fid to be a number
+          if (!/^\d+$/.test(e.target.value)) {
+            return alert('Please enter a valid number')
+          }
+
+          setFidToTransfer(BigInt(e.target.value))
+        }}
+      />
 
       {tx.data ? (
         <Button
@@ -118,11 +128,19 @@ export function TransferFid({ address, fid }: Props) {
         >
           Switch to OP Mainnet
         </Button>
+      ) : ownerOfFid !== address && recovererOfFid !== address ? (
+        <Button disabled>You can&apos;t transfer this FID</Button>
       ) : (
         <Button
           colorStyle="purplePrimary"
           onClick={() => tx.write?.()}
-          disabled={!newCustodyAddress || !tx.write || tx.isLoading}
+          disabled={
+            !newCustodyAddress ||
+            !tx.write ||
+            tx.isLoading ||
+            !ownerOfFid ||
+            !prepareTx.data
+          }
         >
           {tx.isLoading
             ? 'Confirm in Wallet'
@@ -132,13 +150,11 @@ export function TransferFid({ address, fid }: Props) {
         </Button>
       )}
 
-      {!!mnemonic && (
-        <Helper type="warning">
-          Store this seed phrase in a secure place. You will need it to login to
-          Warpcast. This website does not store your seed phrase so it cannot be
-          recovered.
-        </Helper>
-      )}
+      <Helper type="warning">
+        Store this seed phrase in a secure place. You will need it to login to
+        Warpcast. This website does not store your seed phrase so it cannot be
+        recovered.
+      </Helper>
     </Card>
   )
 }

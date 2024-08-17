@@ -10,7 +10,7 @@ import {
 export function usePrepareTransfer({ fid }: { fid?: bigint }) {
   const publicClient = usePublicClient({ chainId: 10 })
 
-  return useQuery(['transfer'], async () => {
+  return useQuery(['transfer', fid], async () => {
     if (!fid) return null
     const mnemonic = generateMnemonic(english)
     const account = mnemonicToAccount(mnemonic)
