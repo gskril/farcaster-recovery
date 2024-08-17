@@ -1,15 +1,32 @@
-## Opinionated Web3 Project Starter Template
+# Farcaster FID Manager
 
-This is a starter template for building web3 projects using my preferred stack:
+A set of tools for managing your Farcaster account onchain.
 
-- Next.js
-- Styled Components
-- Styled JSX (with Sass support)
-- Viem
-- Wagmi
-- RainbowKit
-- Plausible Analytics
+## Installation
 
-It also includes hooks that I tend to use often and my eslint/prettier configuration to keep things consistent.
+Clone the repository
 
-Inspired by [@carlosdp/starter-web3](https://github.com/carlosdp/starter-web3)
+```bash
+git clone https://github.com/gskril/farcaster-recovery.git
+cd farcaster-recovery
+```
+
+Install dependencies
+
+```bash
+yarn install
+```
+
+Create a `.env.local` file and enter your environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Start the dev server
+
+```bash
+yarn dev
+```
+
+Navigate to `http://localhost:3000` in your browser
